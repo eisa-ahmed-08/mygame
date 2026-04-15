@@ -1,23 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Game</title>
+    <title>Runner Game</title>
+    <style>
+        body { text-align: center; font-family: sans-serif; background: #f0f0f0; }
+        canvas { border: 2px solid #333; background-color: #ffffff; display: block; margin: 20px auto; }
+        .controls { margin-top: 10px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
 </head>
 <body onload="startGame()">
+    
+    <div class="controls">
+        <button onmousedown="moveup()" onmouseup="stopMove()" ontouchstart="moveup()">UP</button><br><br>
+        <button onmousedown="moveleft()" onmouseup="stopMove()" ontouchstart="moveleft()">LEFT</button>
+        <button onmousedown="moveright()" onmouseup="stopMove()" ontouchstart="moveright()">RIGHT</button><br><br>
+        <button onmousedown="movedown()" onmouseup="stopMove()" ontouchstart="movedown()">DOWN</button>
+    </div>
 
-<div class="controls">
-  <button onclick="moveup()">UP</button>
-
-  <div class="middle-row">
-    <button onclick="moveleft()">LEFT</button>
-    <button onclick="moveright()">RIGHT</button>
-  </div>
-
-  <button onclick="movedown()">DOWN</button>
-</div>
-<script src="script.js"></script>
-<script src="sprite.js"></script>
+    <script src="sprite.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
