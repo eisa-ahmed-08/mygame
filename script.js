@@ -1,94 +1,128 @@
-var myGameArea = {
-    canvas: document.createElement("canvas"),
-    start: function() {
-        this.canvas.width = 480;
-        this.canvas.height = 270;
-        this.context = this.canvas.getContext("2d");
-        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-        this.interval = setInterval(updateGameArea, 20);
-        
-    
-        window.addEventListener('keydown', function (e) {
-            if (e.key === "ArrowUp") moveup();
-            if (e.key === "ArrowDown") movedown();
-            if (e.key === "ArrowLeft") moveleft();
-            if (e.key === "ArrowRight") moveright();
-        });
-        window.addEventListener('keyup', function (e) {
-            stopMove();
-        });
-    },
-    clear: function() {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    },
-    drawGameObject: function(gameObject) {
-        this.context.drawImage(
-            gameObject.image,
-            gameObject.x,
-            gameObject.y,
-            gameObject.width,
-            gameObject.height
-        );
-    }
-};
+var canvas, ctx;
 
-var animatedObject = {
-    speedX: 0,
-    speedY: 0,
-    width: 70, 
-    height: 100,
-    x: 10,
+var player = {
+    x: 50,
     y: 120,
-    imageList: [], 
-    contaFrame: 0, 
-    actualFrame: 0, 
+    w: 70,
+    h: 100,
+
+    speedX: 0,
+    dir: 1,
+
+    velY: 0,
+    gravity: 0.5,
+    jumping: false,
+
+    images: [],
+    frame: 0,
+    frameCount: 0,
+    frameDelay: 8,
 
     update: function() {
-   
+
         this.x += this.speedX;
-        this.y += this.speedY;
 
-   
-        if (this.x < 0) this.x = 0;
-        if (this.x > myGameArea.canvas.width - this.width) this.x = myGameArea.canvas.width - this.width;
-        if (this.y < 0) this.y = 0;
-        if (this.y > myGameArea.canvas.height - this.height) this.y = myGameArea.canvas.height - this.height;
+        this.velY += this.gravity;
+        this.y += this.velY;
 
-       
-        this.contaFrame++;
-        if (this.contaFrame >= 4) {
-            this.contaFrame = 0;
-            this.actualFrame = (1 + this.actualFrame) % this.imageList.length;
-            this.image = this.imageList[this.actualFrame];
+        if (this.y > canvas.height - this.h) {
+            this.y = canvas.height - this.h;
+            this.velY = 0;
+            this.jumping = false;
+        }
+
+        if (
+            this.x < block.x + block.w &&
+            this.x + this.w > block.x &&
+            this.y < block.y + block.h &&
+            this.y + this.h > block.y
+        ) {
+            if (this.velY > 0) {
+                this.y = block.y - this.h;
+                this.velY = 0;
+                this.jumping = false;
+            }
+        }
+
+        this.frameCount++;
+        if (this.frameCount >= this.frameDelay) {
+            this.frameCount = 0;
+            this.frame = (this.frame + 1) % this.images.length;
         }
     },
 
-    loadImages: function() {
-        for (let imgPath of running) {
-            var img = new Image();
-            img.src = imgPath;
-            this.imageList.push(img);
+    draw: function() {
+        ctx.save();
+
+        if (this.dir === -1) {
+            ctx.scale(-1, 1);
+            ctx.drawImage(this.images[this.frame], -this.x - this.w, this.y, this.w, this.h);
+        } else {
+            ctx.drawImage(this.images[this.frame], this.x, this.y, this.w, this.h);
         }
-        this.image = this.imageList[0];
+
+        ctx.restore();
     }
 };
 
+var block = {
+    x: 500,
+    y: 180,
+    w: 120,
+    h: 20
+};
+
+function keyDown(e) {
+    if (e.key === "ArrowRight") {
+        player.speedX = 4;
+        player.dir = 1;
+    }
+    if (e.key === "ArrowLeft") {
+        player.speedX = -4;
+        player.dir = -1;
+    }
+    if (e.key === "ArrowUp") jump();
+}
+
+function keyUp(e) {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        player.speedX = 0;
+    }
+}
+
+function jump() {
+    if (!player.jumping) {
+        player.velY = -10;
+        player.jumping = true;
+    }
+}
+
+function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    player.update();
+
+    ctx.fillStyle = "brown";
+    ctx.fillRect(block.x, block.y, block.w, block.h);
+
+    player.draw();
+}
+
 function startGame() {
-    animatedObject.loadImages();
-    myGameArea.start();
-}
+    canvas = document.createElement("canvas");
+    canvas.width = 1220;
+    canvas.height = 300;
+    ctx = canvas.getContext("2d");
+    document.body.insertBefore(canvas, document.body.childNodes[0]);
 
-function updateGameArea() {
-    myGameArea.clear();
-    animatedObject.update();
-    myGameArea.drawGameObject(animatedObject);
-}
+    for (let imgPath of running) {
+        let img = new Image();
+        img.src = imgPath;
+        player.images.push(img);
+    }
 
-function moveup() { animatedObject.speedY = -3; }
-function movedown() { animatedObject.speedY = 3; }
-function moveleft() { animatedObject.speedX = -3; }
-function moveright() { animatedObject.speedX = 3; }
-function stopMove() { 
-    animatedObject.speedX = 0; 
-    animatedObject.speedY = 0; 
+    setInterval(update, 20);
+
+    window.addEventListener("keydown", keyDown);
+    window.addEventListener("keyup", keyUp);
 }
