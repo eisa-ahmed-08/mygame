@@ -7,6 +7,5 @@ var running = [
     "https://i.ibb.co/pv4DDGr2/Run-007.png",
     "https://i.ibb.co/C50GrbX6/Run-008.png",
     "https://i.ibb.co/hRhQfMT8/Run-009.png",
-    "https://i.ibb.co/kgjWHZQz/Slide-000.png",
-    "https://i.ibb.co/BHY3RkrV/Slide-001.png"
+  
 ];
