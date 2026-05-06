@@ -1,8 +1,11 @@
+// ===== VARIABILI GLOBALI =====
 var canvas, ctx;
 var frameNo = 0;
 var mondo = 1;
+var ground = 20;
+var score = 0;
 
-// PLAYER
+// ===== PLAYER =====
 var player = {
     x: 50,
     y: 120,
@@ -29,28 +32,28 @@ var player = {
         this.y += this.velY;
 
         // terreno
-        if (this.y > canvas.height - this.h) {
-            this.y = canvas.height - this.h;
+        if (this.y > canvas.height - ground - this.h) {
+            this.y = canvas.height - ground - this.h;
             this.velY = 0;
             this.jumping = false;
         }
 
-        // collisioni con ostacoli
+        // collisioni
         for (let obs of gestioneOstacoli.lista) {
+
             if (
                 this.x < obs.x + obs.width &&
                 this.x + this.w > obs.x &&
                 this.y < obs.y + obs.height &&
                 this.y + this.h > obs.y
             ) {
-                // sopra
-                if (this.velY > 0) {
+                // puoi stare sopra
+                if (this.velY > 0 && this.y + this.h - this.velY <= obs.y) {
                     this.y = obs.y - this.h;
                     this.velY = 0;
                     this.jumping = false;
                 } else {
-                    // collisione laterale = stop
-                    this.speedX = 0;
+                    resetGame();
                 }
             }
         }
@@ -74,7 +77,6 @@ var player = {
                 ctx.drawImage(this.images[this.frame], this.x, this.y, this.w, this.h);
             }
         } else {
-            // fallback
             ctx.fillStyle = "blue";
             ctx.fillRect(this.x, this.y, this.w, this.h);
         }
@@ -83,49 +85,79 @@ var player = {
     }
 };
 
-// 🎯 OSTACOLI (ADATTATI)
+// ===== OSTACOLI =====
 var gestioneOstacoli = {
     lista: [],
 
     genera: function () {
-        if (everyinterval(50)) {
+
+        if (frameNo % 50 === 0) {
+
             let x = canvas.width;
-            let pY = canvas.height - 20;
-            let scelta = Math.floor(Math.random() * 4);
+            let base = canvas.height - ground;
 
-            let coloreTubi;
+            let scelta = Math.floor(Math.random() * 3); // 🔥 ora solo 3 tipi
 
-            if (mondo == 2) coloreTubi = "darkgreen";
-            else if (mondo == 3) coloreTubi = "#b22222dc";
-            else coloreTubi = "green";
+            let coloreTubi = (mondo == 2) ? "darkgreen" :
+                             (mondo == 3) ? "#b22222dc" : "green";
 
+            // 🟢 TUBO (terra)
             if (scelta == 0) {
-                this.lista.push(new obstacleComponent(45, 70, x, pY - 70, coloreTubi, "tubo"));
-            } else if (scelta == 1) {
+                this.lista.push(new obstacleComponent(45, 70, x, base - 70, coloreTubi, "tubo"));
+            }
+
+            // 🟤 CUBI (ABBASSATI)
+            else if (scelta == 1) {
                 for (let i = 0; i < 3; i++) {
-                    this.lista.push(new obstacleComponent(35, 35, x + (i * 35), pY - 130, "#CD853F", "cubo"));
+                    this.lista.push(
+                        new obstacleComponent(
+                            35,
+                            35,
+                            x + (i * 35),
+                            base - 80,   // 🔽 prima era 130 → ora più basso
+                            "#CD853F",
+                            "cubo"
+                        )
+                    );
                 }
-            } else if (scelta == 2) {
-                this.lista.push(new obstacleComponent(30, 30, x, pY - 30, "darkred", "nemico"));
-            } else {
-                this.lista.push(new obstacleComponent(25, 100, x, pY - 100, "#555", "palo"));
+            }
+
+            // 🔴 NEMICO (ABBASSATO)
+            else if (scelta == 2) {
+                this.lista.push(
+                    new obstacleComponent(
+                        30,
+                        30,
+                        x,
+                        base - 40,   // 🔽 prima era 30 → leggermente più alto ma vicino al terreno
+                        "darkred",
+                        "nemico"
+                    )
+                );
             }
         }
     },
 
     aggiorna: function () {
-        for (let i = 0; i < this.lista.length; i++) {
-            let obs = this.lista[i];
+
+        for (let obs of this.lista) {
+
             obs.x -= (4 + mondo);
+
+            // punteggio
+            if (!obs.passed && obs.x + obs.width < player.x) {
+                obs.passed = true;
+                score += 10;
+            }
 
             this.disegna(obs);
         }
 
-        // rimuove quelli fuori schermo
         this.lista = this.lista.filter(o => o.x + o.width > 0);
     },
 
     disegna: function (obs) {
+
         ctx.fillStyle = "black";
         ctx.fillRect(obs.x - 2, obs.y - 2, obs.width + 4, obs.height + 4);
 
@@ -147,7 +179,7 @@ var gestioneOstacoli = {
     }
 };
 
-// COSTRUTTORE
+// ===== COSTRUTTORE =====
 function obstacleComponent(width, height, x, y, colore, tipo) {
     this.width = width;
     this.height = height;
@@ -155,14 +187,22 @@ function obstacleComponent(width, height, x, y, colore, tipo) {
     this.y = y;
     this.colore = colore;
     this.tipo = tipo;
+    this.passed = false;
 }
 
-// TIMER LOGICO
-function everyinterval(n) {
-    return (frameNo % n === 0);
+// ===== RESET =====
+function resetGame() {
+    player.x = 50;
+    player.y = 120;
+    player.velY = 0;
+    player.speedX = 0;
+
+    gestioneOstacoli.lista = [];
+    frameNo = 0;
+    score = 0;
 }
 
-// CONTROLLI
+// ===== CONTROLLI =====
 function keyDown(e) {
     if (e.key === "ArrowRight") {
         player.speedX = 4;
@@ -188,27 +228,36 @@ function jump() {
     }
 }
 
-// LOOP
+// ===== LOOP =====
 function update() {
     frameNo++;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // terreno
+    ctx.fillStyle = "#654321";
+    ctx.fillRect(0, canvas.height - ground, canvas.width, ground);
 
     gestioneOstacoli.genera();
     gestioneOstacoli.aggiorna();
 
     player.update();
     player.draw();
+
+    // punteggio
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText("Score: " + score, 20, 30);
 }
 
-// START
+// ===== START =====
 function startGame() {
     canvas = document.createElement("canvas");
     canvas.width = 1220;
     canvas.height = 300;
-    ctx = canvas.getContext("2d");
 
-    document.body.insertBefore(canvas, document.body.childNodes[0]);
+    ctx = canvas.getContext("2d");
+    document.body.appendChild(canvas);
 
     for (let imgPath of running) {
         let img = new Image();

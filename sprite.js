@@ -6,6 +6,6 @@ var running = [
     "https://i.ibb.co/kVt79YmM/Run-006.png",
     "https://i.ibb.co/pv4DDGr2/Run-007.png",
     "https://i.ibb.co/C50GrbX6/Run-008.png",
-    "https://i.ibb.co/hRhQfMT8/Run-009.png",
+    "https://i.ibb.co/hRhQfMT8/Run-009.png"
   
 ];
