@@ -1,4 +1,3 @@
-// player.js - Logica del giocatore
 var player = {
     x: 50,
     y: 120,

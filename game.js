@@ -1,4 +1,3 @@
-// game.js - Logica principale del gioco
 var canvas, ctx;
 var frameNo = 0;
 var mondo = 1;

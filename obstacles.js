@@ -1,4 +1,3 @@
-// obstacles.js - Gestione degli ostacoli
 var gestioneOstacoli = {
     lista: [],
 
